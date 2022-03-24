@@ -13,7 +13,7 @@ float mkt ;
 float et;
 int num;
 
-
+  
 const char* server = "api.thingspeak.com";
 
 WiFiClient client;
@@ -66,7 +66,43 @@ tKelvin = (BETA * ROOM_TEMP) / (BETA + (ROOM_TEMP * log(rThermistor / RESISTOR_R
 t = tKelvin - 273.15; 
 Con_t = Con_t +1;
 mktlist[Con_t]= tKelvin;
-
+Serial.println(Con_t);
+Serial.println(mktlist[Con_t]);
+num= sizeof(mktlist)/sizeof(int);
+Serial.println(num);
+if (Con_t==10){
+     for(int i = 1; i < num ; i++){
+       et= et+ exp(-DH/(R*mktlist[i]));
+       Serial.print("L ");
+       Serial.println (mktlist[i]);
+          
+    }
+      mkt =(DH/R)/(-log(et/(num-1)));
+       if (client.connect(server, 80)) {
+        String postStr2 = apiKey;
+        postStr2 += "&field2=";
+        postStr2 += String(mkt);
+        postStr2 += "\r\n\r\n";
+    
+        client.print("POST /update HTTP/1.1\n");
+        client.print("Host: api.thingspeak.com\n");
+        client.print("Connection: close\n");
+        client.print("X-THINGSPEAKAPIKEY: " + apiKey + "\n");
+        client.print("Content-Type: application/x-www-form-urlencoded\n");
+        client.print("Content-Length: ");
+        client.print(postStr2.length());
+        client.print("\n\n");
+        client.print(postStr2);
+    
+        Serial.print("MKT: ");
+        Serial.print(mkt);
+        Serial.println("°C enviado a BROKER Thingspeak");
+        
+        
+        }
+       Con_t=0;
+      
+}
 
         
 
@@ -90,27 +126,13 @@ mktlist[Con_t]= tKelvin;
     Serial.print("Temperatura: ");
     Serial.print(t);
     Serial.println("°C enviado a BROKER Thingspeak");
+    
     //Serial.print(m);
     //Serial.print(vol);
-    Serial.println(Con_t);
-    Serial.println(mktlist[Con_t]);
-    num= sizeof(mktlist)/sizeof(int);
-    Serial.println(num);
-    if (Con_t==10){
-        for(int i = 1; i < num ; i++){
-          et= et+ exp(-DH/(R*mktlist[i]));
-          Serial.print("L ");
-          Serial.println (mktlist[i]);
-          
-    }
-        mkt =(DH/R)/(-log(et/(num-1)));
-        Serial.print("MKT");
-        Serial.print(mkt);
-        Con_t=0;
-        
+    
     }
     
-  }
+  
   client.stop();
 
   Serial.println("Esperando a siguiente publicacion…"); 
