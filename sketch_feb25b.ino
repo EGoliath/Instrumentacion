@@ -12,7 +12,11 @@ float mktlist[11];
 float mkt ;
 float et;
 int num;
-
+int fun;
+int count2=0;
+int count3=0;
+int count5=0;
+int countr=0;
   
 const char* server = "api.thingspeak.com";
 
@@ -70,7 +74,7 @@ Serial.println(Con_t);
 Serial.println(mktlist[Con_t]);
 num= sizeof(mktlist)/sizeof(int);
 Serial.println(num);
-if (Con_t==10){
+if (Con_t==10 ){
      for(int i = 1; i < num ; i++){
        et= et+ exp(-DH/(R*mktlist[i]));
        Serial.print("L ");
@@ -78,7 +82,7 @@ if (Con_t==10){
           
     }
       mkt =(DH/R)/(-log(et/(num-1)));
-       if (client.connect(server, 80)) {
+       if (client.connect(server, 80) && fun == 0) {
         String postStr2 = apiKey;
         postStr2 += "&field2=";
         postStr2 += String(mkt);
@@ -107,7 +111,7 @@ if (Con_t==10){
         
 
 
-    if (client.connect(server, 80)) {
+    if (client.connect(server, 80)&&fun == 0) {
     String postStr = apiKey;
     postStr += "&field1=";
     postStr += String(t);
@@ -126,11 +130,36 @@ if (Con_t==10){
     Serial.print("Temperatura: ");
     Serial.print(t);
     Serial.println("°C enviado a BROKER Thingspeak");
+
+    if (t >= 27) {
+      count2 = count2 +1;
+      }else {
+         count2 = 0;
+        }
+
+      if (count5 < 5){
+        count5 = count5 +1;
+       if (t >= 27) {
+      count3 = count3 +1;
+      }
+      } else {
+        count5 = 0;
+        count3 = 0;
+      }
+
+       if (t < 27) {
+      countr = countr +1;
+      }else {
+         countr = 0;
+        }
+      
     
     //Serial.print(m);
     //Serial.print(vol);
     
     }
+
+   
     
   
   client.stop();
@@ -157,7 +186,7 @@ if (Con_t==10){
 
     http.end();   //Close connection
      Serial.println(" Mande correo");
-     delay(5000);
+     delay(10000);
      Serial.println("Esperando 10 seg");
 
   }
@@ -195,8 +224,15 @@ if (Con_t==10){
       
       
     }
+     if(t>-50){
+      
+      fun =0;
+      
+      
+      }
     if(t<-60){
       Serial.print("ERROR sensor desconectado");
+      fun =1;
       
       
       }
@@ -205,6 +241,25 @@ if (Con_t==10){
       
       
       
+      
+      
+      }
+
+         if(count2 == 2){
+      Serial.println("2 Registros consecutivos mayores o iguales a 27 C");
+      
+      
+      }
+
+               if(count3 == 3){
+      Serial.println("3 de 5 Registros no consecutivos mayores o iguales a 27 C");
+      
+      
+      }
+
+      
+               if(countr >= 3){
+      Serial.println("Temperatura restablecida, 3 Registros consecutivos menores a 27 C");
       
       
       }
